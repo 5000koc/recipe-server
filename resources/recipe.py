@@ -18,6 +18,107 @@ from mysql_connection import get_connection
 # 상속해서 만들어야 한다. 파이썬에서 상속은 괄호!
 
 
+class MyRecipeListResource(Resource):
+
+    @jwt_required()
+    def get(self, user_id):
+        
+        user_id = get_jwt_identity()
+
+        try:
+            connection = get_connection()
+            query = '''select *
+                    from recipe
+                    where user_id = %s;'''
+            record = ( user_id )
+
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(query, record)
+
+            result_list = cursor.fetchall()
+
+            cursor.close()
+            connection.close()
+
+
+        except Error as e:
+            print(e)
+            return {'return':'fail', 'error':str(e)}, 500
+        
+        print(result_list)
+
+        i = 0
+        for row in result_list :
+            result_list[i]['created_at'] = row['created_at'].isoformat()  
+            result_list[i]['updated_at'] = row['updated_at'].isoformat()    
+            i = i + 1
+
+        return {'result':'success', 'count':len(result_list), 'items': result_list}
+
+
+
+# 레시피를 공개하는 API 코드 PUT으로 만듬
+class RecipePublishResource(Resource):
+
+    @jwt_required()
+    def put(self, recipe_id):
+
+        # 1. 클라이언트로부터 데이터를 받아온다
+        user_id = get_jwt_identity()
+        
+        # 2. DB처리한다
+        try:
+            connection = get_connection()
+            query = '''update recipe
+                    set is_publish = 1
+                    where id = %s and user_id = %s;'''
+            record = (recipe_id, user_id)
+            cursor = connection.cursor()
+            cursor.execute(query, record)
+            connection.commit()
+            cursor.close()
+            connection.close()
+            
+        except Error as e:
+            print(e)
+            return {'result':'fail', 'error':str(e)}, 500
+        
+        
+        return {'result' : 'success'}
+    
+    @jwt_required()
+    def delete(self, recipe_id):
+      
+        # 1. 클라이언트로부터 데이터를 받아온다
+        user_id = get_jwt_identity()
+        
+        # 2. DB처리한다
+        try:
+            connection = get_connection()
+            query = '''update recipe
+                    set is_publish = 0
+                    where id = %s and user_id = %s;'''
+            record = (recipe_id, user_id)
+            cursor = connection.cursor()
+            cursor.execute(query, record)
+            connection.commit()
+            cursor.close()
+            connection.close()
+            
+        except Error as e:
+            print(e)
+            return {'result':'fail', 'error':str(e)}, 500
+        
+        
+        return {'result' : 'success'}
+
+
+
+
+
+
+
+
 class RecipeResource(Resource) :
     
     # GET 메소드에서, 경로로 넘어오는 변수는, get 함수의 파라미터로사용

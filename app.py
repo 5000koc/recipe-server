@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 from config import Config
-from resources.recipe import RecipeListResource, RecipeResource
+from resources.recipe import MyRecipeListResource, RecipeListResource, RecipePublishResource, RecipeResource
 from resources.user import UserLoginResource, UserLogoutResource, UserRegisterResource, jwt_blocklist
 
 from flask_jwt_extended import JWTManager
@@ -29,6 +29,9 @@ api.add_resource(RecipeResource, '/recipes/<int:recipe_id>' )
 api.add_resource(UserRegisterResource, '/user/register')
 api.add_resource(UserLoginResource, '/user/login')
 api.add_resource(UserLogoutResource, '/user/logout')
+api.add_resource(RecipePublishResource, '/recipes/<int:recipe_id>/publish')
+api.add_resource(MyRecipeListResource, '/recipes/me')
+
 
 if __name__ == '__main__': # 공식룰
     app.run()
